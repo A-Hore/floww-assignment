@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="container-calendar">
+        <div id="monthAndYear">
+          <div>
+            <h3 id="monthAndYear-text"></h3>
+          </div>
+          <div>
+            <div class="button-container-calendar">
+              <button id="previous" onclick="previous()">&#8249;</button>
+              <button id="next" onclick="next()">&#8250;</button>
+            </div>
+          </div>
+        </div>
+
+        <table class="table-calendar" id="calendar" data-lang="en">
+          <thead id="thead-month"></thead>
+          <tbody id="calendar-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="activity-wrapper">
+      <div class="activity">Activity</div>
+      <div class="show-date">Today</div>
+      <div class="show-activity">
+        <form onsubmit="addActivity()">
+          <div>
+            <label for="">Activity Title : </label>
+            <input id="title" type="text" required />
+          </div>
+          <br />
+          <div>
+            <label for="">Description : </label>
+            <input id="description" type="text" required />
+          </div>
+          <br />
+          <div>
+            <button type="submit">Add Activity</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      let selectedDate = "";
+
+      function generate_year_range(start, end) {
+        let years = "";
+        for (let year = start; year <= end; year++) {
+          years += "<option value='" + year + "'>" + year + "</option>";
+        }
+        return years;
+      }
+
+      function getCurrentDate() {
+        const today = new Date();
+        currentMonth = today.getMonth();
+        currentYear = today.getFullYear();
+        selectedDate = today.getDate() + " " + months[currentMonth] + " " + currentYear;
+      }
+
+      today = new Date(Date.now());
+      currentMonth = today.getMonth();
+      currentYear = today.getFullYear();
+      selectYear = document.getElementById("year");
+      selectMonth = document.getElementById("month");
+
+      createYear = generate_year_range(1970, 2050);
+
+      var calendar = document.getElementById("calendar");
+      var lang = calendar.getAttribute("data-lang");
+
+      var months = "";
+      var days = "";
+
+      const activity = [
+        {
+          date: "27 April 2024",
+          title: "arjun hore",
+          description: "lorem Ipsum is Lorem Ipsum and Lorem Ipsum is Lorem Ipsum and Lorem Ipsum is Lorem Ipsum ",
+        },
+        {
+          date: "13 April 2024",
+          title: "arjun hore 2",
+          description: "lorem Ipsum is Lorem Ipsum and Lorem Ips Umis Lorem Ipsum and Lorem Ips Um is Lorem Ipsum and Lorem Ipsum is",
+        },
+      ];
+
+      var monthDefault = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+      var dayDefault = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+      if (lang == "en") {
+        months = monthDefault;
+        days = dayDefault;
+      } else if (lang == "id") {
+        months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        days = ["Ming", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+      } else if (lang == "fr") {
+        months = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+        days = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+      } else {
+        months = monthDefault;
+        days = dayDefault;
+      }
+
+      var $dataHead = "<tr>";
+      for (dhead in days) {
+        $dataHead += "<th data-days='" + days[dhead] + "'>" + days[dhead] + "</th>";
+      }
+      $dataHead += "</tr>";
+
+      document.getElementById("thead-month").innerHTML = $dataHead;
+
+      monthAndYear = document.getElementById("monthAndYear-text");
+      showCalendar(currentMonth, currentYear);
+
+      function next() {
+        currentYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+        currentMonth = (currentMonth + 1) % 12;
+        showCalendar(currentMonth, currentYear);
+      }
+
+      function previous() {
+        currentYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+        currentMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        showCalendar(currentMonth, currentYear);
+      }
+
+      function showCalendar(month, year) {
+        var firstDay = new Date(year, month).getDay();
+        var tbl = document.getElementById("calendar-body");
+
+        tbl.innerHTML = "";
+
+        monthAndYear.innerHTML = months[month] + " " + year;
+
+        var date = 1;
+        for (var i = 0; i < 6; i++) {
+          var row = document.createElement("tr");
+
+          for (var j = 0; j < 7; j++) {
+            if (i === 0 && j < firstDay) {
+              var cell = document.createElement("td");
+              var cellText = document.createTextNode("");
+              cell.appendChild(cellText);
+              row.appendChild(cell);
+            } else if (date > daysInMonth(month, year)) {
+              break;
+            } else {
+              var cell = document.createElement("td");
+              cell.setAttribute("data-date", date);
+              cell.setAttribute("data-month", month + 1);
+              cell.setAttribute("data-year", year);
+              cell.setAttribute("data-month_name", months[month]);
+              cell.className = "date-picker";
+              cell.innerHTML = "<span>" + date + "</span>";
+
+              if (date === today.getDate() && year === today.getFullYear() && month === today.getMonth()) {
+                cell.className = "date-picker selected";
+              }
+
+              var cellDate = date + " " + months[month] + " " + year;
+              for (var k = 0; k < activity.length; k++) {
+                if (activity[k].date === cellDate) {
+                  cell.classList.add("hasActivity");
+                  break; // No need to continue checking if activity found
+                }
+              }
+
+              cell.addEventListener("click", function () {
+                var clickedDate = this.getAttribute("data-date");
+
+                var clickedMonth = this.getAttribute("data-month");
+                var clickedYear = this.getAttribute("data-year");
+                var clickedMonthName = this.getAttribute("data-month_name");
+                var date = clickedDate + " " + clickedMonthName + " " + clickedYear;
+                selectedDate = date;
+
+                var foundActivity = false; // Flag to check if activity found
+                for (var i = 0; i < activity.length; i++) {
+                  if (activity[i].date == date) {
+                    document.querySelector(".show-date").innerHTML = date;
+                    document.querySelector(".show-activity").innerHTML = activity[i].title + "<br/>" + activity[i].description;
+                    console.log(activity[i].activity);
+                    foundActivity = true;
+                    break; // No need to continue checking if activity found
+                  } else {
+                    document.querySelector(".show-date").innerHTML = date;
+                    document.querySelector(".show-activity").innerHTML = `
+                  <form onsubmit="addActivity()">
+                    <div>
+                      <label for="">Activity Title : </label>
+                      <input id="title" type="text" required />
+                    </div>
+                    <br />
+                    <div>
+                      <label for="">Description : </label>
+                      <input id="description" type="text" required />
+                    </div>
+                    <br />
+                    <div>
+                      <button type="submit">Add Activity</button>
+                    </div>
+                  </form>`;
+                  }
+                }
+              });
+
+              row.appendChild(cell);
+              date++;
+            }
+          }
+
+          tbl.appendChild(row);
+        }
+      }
+
+      function addActivity() {
+        let title = document.getElementById("title").value;
+        let Description = document.getElementById("description").value;
+
+        document.querySelector(".show-date").innerHTML = selectedDate;
+        document.querySelector(".show-activity").innerHTML = title + "<br/> " + Description;
+
+        activity.push({ date: selectedDate, title: title, description: Description });
+      }
+
+      function daysInMonth(iMonth, iYear) {
+        return 32 - new Date(iYear, iMonth, 32).getDate();
+      }
+    </script>
+  </body>
+</html>
